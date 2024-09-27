@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using SourceGit.Models;
 
 namespace SourceGit.Commands
 {
@@ -10,6 +12,8 @@ namespace SourceGit.Commands
     /// </summary>
     public class GenerateCommitMessage
     {
+        private IAIChat _llm = null;
+
         public class GetDiffContent : Command
         {
             public GetDiffContent(string repo, Models.DiffOption opt)
@@ -26,9 +30,11 @@ namespace SourceGit.Commands
             _changes = changes;
             _cancelToken = cancelToken;
             _onProgress = onProgress;
+            _llm = new AIHuggingface();
+            _llm.Setup();
         }
 
-        public string Result()
+        public async Task<string > Result()
         {
             try
             {
@@ -39,7 +45,7 @@ namespace SourceGit.Commands
                         return "";
 
                     _onProgress?.Invoke($"Analyzing {change.Path}...");
-                    var summary = GenerateChangeSummary(change);
+                    var summary = await GenerateChangeSummary(change);
                     summaries.Add(summary);
                 }
 
@@ -65,7 +71,7 @@ namespace SourceGit.Commands
             }
         }
 
-        private string GenerateChangeSummary(Models.Change change)
+        private async Task<string> GenerateChangeSummary(Models.Change change)
         {
             var rs = new GetDiffContent(_repo, new Models.DiffOption(change, false)).ReadToEnd();
             var diff = rs.IsSuccess ? rs.StdOut : "unknown change";
@@ -78,14 +84,12 @@ namespace SourceGit.Commands
             prompt.AppendLine("- Simply describe the MAIN GOAL of the changes.");
             prompt.AppendLine("- Output directly the summary in plain text.`");
 
-            var rsp = Models.OpenAI.Chat(prompt.ToString(), $"Here is the `git diff` output: {diff}", _cancelToken);
-            if (rsp != null && rsp.Choices.Count > 0)
-                return rsp.Choices[0].Message.Content;
+            var rsp = await _llm.Chat(prompt.ToString(), $"Here is the `git diff` output: {diff}", _cancelToken);
 
-            return string.Empty;
+            return rsp.Content;
         }
 
-        private string GenerateSubject(string summary)
+        private async Task<string> GenerateSubject(string summary)
         {
             var prompt = new StringBuilder();
             prompt.AppendLine("You are an expert developer specialist in creating commits messages.");
@@ -104,11 +108,9 @@ namespace SourceGit.Commands
             prompt.AppendLine("- Output directly only one commit message in plain text with the next format: {type}: {commit_message}.");
             prompt.AppendLine("- Be as concise as possible, keep the message under 50 characters.");
 
-            var rsp = Models.OpenAI.Chat(prompt.ToString(), $"Here are the summaries changes: {summary}", _cancelToken);
-            if (rsp != null && rsp.Choices.Count > 0)
-                return rsp.Choices[0].Message.Content;
+            var rsp = await _llm.Chat(prompt.ToString(), $"Here are the summaries changes: {summary}", _cancelToken);
 
-            return string.Empty;
+            return rsp.Content;
         }
 
         private string _repo;

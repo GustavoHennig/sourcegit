@@ -58,6 +58,8 @@
     <PackageReference Include="GHSoftware.Avalonia.SpellChecker" Version="0.3.0" />
     <PackageReference Include="TextMateSharp" Version="1.0.63" />
     <PackageReference Include="TextMateSharp.Grammars" Version="1.0.63" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.19.2" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" Version="0.4.0" />
   </ItemGroup>
 
   <ItemGroup>

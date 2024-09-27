@@ -123,11 +123,11 @@ namespace SourceGit.Views
 
         private void OnOpenAIAssist(object _, RoutedEventArgs e)
         {
-            if (!Models.OpenAI.IsValid)
-            {
-                App.RaiseException(null, "Bad configuration for OpenAI");
-                return;
-            }
+            //if (!Models.OpenAI.IsValid)
+            //{
+            //    App.RaiseException(null, "Bad configuration for OpenAI");
+            //    return;
+            //}
 
             if (DataContext is ViewModels.WorkingCopy vm)
             {

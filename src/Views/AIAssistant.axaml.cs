@@ -20,9 +20,9 @@ namespace SourceGit.Views
         {
             if (DataContext is ViewModels.WorkingCopy vm)
             {
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
-                    var message = new Commands.GenerateCommitMessage(vm.RepoPath, vm.Staged, _cancel.Token, SetDescription).Result();
+                    var message = await new Commands.GenerateCommitMessage(vm.RepoPath, vm.Staged, _cancel.Token, SetDescription).Result();
                     if (_cancel.IsCancellationRequested)
                         return;
 
